@@ -10,6 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 def handleCookies():
+    # Called when navigating to new browser instance or web page; clear the "cookies" pop-up
+    # Wait for the cookies "AGREE" button to be present and clickable
     agree_button_xpath = '//button[span[text()="AGREE"]]'
     try:
         agree_button = WebDriverWait(browser, 10).until(
@@ -20,11 +22,13 @@ def handleCookies():
 
 
 def findGivenElements(xpath_in):
+    # accepts an xpath argument & returns a list of corresponding elements 
     WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, xpath_in)))
     return browser.find_elements(By.XPATH, xpath_in)
 
 
 def showAllClick():
+    # each episode-page will show an abridged list of tracks; if there is a "show all" button, this function will click & expand the track listing
     try:
         showAllButt_xpath = '//p[@class="sc-jEACwC jpIqjk sc-hmdomO YqQqi"]'
         showAllButt = WebDriverWait(browser, 10).until(
@@ -47,6 +51,7 @@ browser = webdriver.Firefox()
 browser.get(builtUrl)
 handleCookies()
 
+# xpath of the show's seasons
 season_element_xpath = '//h4[@class="sc-fUnMCh ImNYE sc-hmdomO ifqyAa"]'
 season_elements = findGivenElements(season_element_xpath)
 
@@ -60,10 +65,8 @@ else:
 # Click into the corresponding season link
 browser.execute_script("arguments[0].click();", season_elements[currChoice-1])
 
-# Scrape all episodes for the selected season
+# xpath of "episode" elements within each season
 episode_element_xpath = '//h4[@class="sc-fUnMCh ImNYE sc-hmdomO ifqyAa"]'
-
-# Re-fetch the episode elements after each navigation action
 episode_elements = findGivenElements(episode_element_xpath)
 
 for j in range(len(episode_elements)):
@@ -76,11 +79,10 @@ for j in range(len(episode_elements)):
     
     # Try to click the episode link
     try:
-        browser.execute_script("arguments[0].click();", episode)  # page opens
+        browser.execute_script("arguments[0].click();", episode)  # click into each episode
         
         # once inside the episode page, scrape the tracks
         showAllClick()  # Click "Show All" if present
-        
                 
         # pull song / artist elements from within a specific div element
         # avoids pulling additional / not required tracks that are duplicated around the page
@@ -94,10 +96,11 @@ for j in range(len(episode_elements)):
         song_elements = parent_div.find_elements(By.XPATH, './/p[@class="sc-jEACwC jpIqjk sc-hmdomO YqQqi sc-knuQbY dhEDwX"]')
         artist_elements = parent_div.find_elements(By.XPATH, './/a/small')
         
+        # scrape song & artist into separate lists
         song_text = [song.text for song in song_elements]
         artist_text = [artist.text for artist in artist_elements]
 
-        playlist.update(dict(zip(song_text, artist_text)))
+        playlist.update(dict(zip(song_text, artist_text))) # combine the song with the corresponding artist
 
         # After scraping, navigate back to the season episode list
         browser.back()
