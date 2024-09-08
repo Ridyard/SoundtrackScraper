@@ -6,6 +6,7 @@
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -34,13 +35,17 @@ def showAllClick(parent_div_in):
         showAllButt = parent_div_in.find_element(By.XPATH, showAllButt_xpath)
         browser.execute_script("arguments[0].scrollIntoView(true);", showAllButt)
         browser.execute_script("arguments[0].click();", showAllButt)
-        print("'show all' button clicked")
+        # print("'show all' button clicked")
     except Exception as e:
         print(f"No 'Show All' button found or issue with clicking: {str(e)}")
 
 
 
 playlist = {}  # dict to hold each artist:song kv pair
+
+# Headless Firefox configuration
+options = Options()
+options.headless = True  # Enable headless mode / True = don't show browser
 
 # build the url from which we will scrape the soundtrack list
 baseURL = 'https://www.tunefind.com/show/'
@@ -49,7 +54,7 @@ tvShowClean = '-'.join(tvShow)  # replace whitespaces with '-' in url
 builtUrl = baseURL + tvShowClean
 
 # set browser object & open url
-browser = webdriver.Firefox()
+browser = webdriver.Firefox(options = options) # Use options when initializing the WebDriver
 browser.get(builtUrl)
 handleCookies()
 
